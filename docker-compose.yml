@@ -1,0 +1,50 @@
+version: '3'
+
+volumes: 
+   work-db-data:
+   work-dot-config:
+   work-dot-cache:
+   work-dot-local:
+   work-dot-composer:
+
+networks: 
+  work-network:
+    driver: bridge
+
+services: 
+  api:
+    image: ambientum/php:7.4-nginx
+    container_name: work-api
+    restart: unless-stopped
+    environment:
+      - XDEBUG_ENABLED=trueexit
+      - PHP_IDE_CONFIG=work-ambientum
+    volumes: 
+      - .:/var/www/app
+      - work-dot-config:/home/ambientum/.config
+      - work-dot-cache:/home/ambientum/.cache
+      - work-dot-local:/home/ambientum/.local
+      - work-dot-composer:/home/ambientum/.composer
+    networks: 
+      - work-network
+    ports: 
+      - 80:8080
+      - 443:8083
+
+  db:
+    image: mysql:5.7
+    container_name: work-db
+    command: --innodb-use-native-aio=0
+    restart: always
+    ports: 
+      - "3306:3306"
+    volumes: 
+      - "work-db-data:/var/lib/mysql"
+    #   - "./.docker/mysql/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf"
+    environment:
+      MYSQL_ROOT_PASSWORD: workwork
+      MYSQL_DATABASE: work
+      MYSQL_USER: work
+      MYSQL_PASSWORD: work
+    networks:
+      - work-network
